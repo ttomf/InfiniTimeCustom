@@ -32,9 +32,15 @@ WatchFaceDigitalPlus::WatchFaceDigitalPlus(Controllers::DateTime& dateTimeContro
     heartRateController {heartRateController},
     motionController {motionController},
     weatherService {weatherService},
+    batteryController {batteryController},
     statusIcons(batteryController, bleController, alarmController) {
 
   statusIcons.Create();
+
+  label_battery_value = lv_label_create(lv_scr_act(), nullptr);
+  lv_obj_align(label_battery_value, lv_scr_act(), LV_ALIGN_IN_TOP_RIGHT, 0, 0);
+  lv_label_set_text_static(label_battery_value, "0%");
+  lv_obj_align(statusIcons.GetObject(), label_battery_value, LV_ALIGN_OUT_LEFT_TOP, -5, 0);
 
   notificationIcon = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_set_style_local_text_color(notificationIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_LIME);
@@ -101,6 +107,13 @@ WatchFaceDigitalPlus::~WatchFaceDigitalPlus() {
 
 void WatchFaceDigitalPlus::Refresh() {
   statusIcons.Update();
+
+  batteryPercentRemaining = batteryController.PercentRemaining();
+  if (batteryPercentRemaining.IsUpdated()) {
+    lv_label_set_text_fmt(label_battery_value, "%d%%", batteryPercentRemaining.Get());
+  }
+  lv_obj_realign(label_battery_value);
+  lv_obj_align(statusIcons.GetObject(), label_battery_value, LV_ALIGN_OUT_LEFT_TOP, -5, 0);
 
   notificationState = notificationManager.AreNewNotificationsAvailable();
   if (notificationState.IsUpdated()) {
